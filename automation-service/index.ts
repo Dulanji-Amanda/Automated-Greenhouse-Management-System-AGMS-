@@ -8,7 +8,6 @@ app.use(express.json());
 
 const PORT = 8083;
 
-// --- 1. Types & Interfaces (TypeScript) ---
 interface TelemetryData {
     deviceId: string;
     zoneId: string;
@@ -37,7 +36,6 @@ interface ActionLog {
 
 const actionLogs: ActionLog[] = [];
 
-// --- 2. Eureka Server Register ---
 const client = new Eureka({
   instance: {
     app: 'AUTOMATION-SERVICE',
@@ -63,8 +61,7 @@ const client = new Eureka({
 
 client.start();
 
-// --- 3. (Rule Engine) ---
-// [cite: 143, 149]
+
 app.post('/api/automation/process', async (req: Request, res: Response): Promise<any> => {
   const telemetryData: TelemetryData = req.body;
   
@@ -74,15 +71,14 @@ app.post('/api/automation/process', async (req: Request, res: Response): Promise
       return res.status(400).json({ error: "Temperature data is missing" });
   }
 
-  console.log(`\n📥 Received Telemetry: Temp = ${currentTemp}°C`);
+  console.log(`\n Received Telemetry: Temp = ${currentTemp}°C`);
 
   try {
-    // Get all zones from the Zone Service (via Eureka) [cite: 144]
     const zoneResponse = await axios.get<Zone[]>('http://localhost:8081/api/zones');
     const zones = zoneResponse.data;
 
     if (zones.length === 0) {
-      console.log("⚠️ No zones configured in the database!");
+      console.log(" No zones configured in the database!");
       return res.status(404).json({ message: "No zones found" });
     }
 
@@ -94,18 +90,17 @@ app.post('/api/automation/process', async (req: Request, res: Response): Promise
     const minTemp = targetZone.minTemp;
     const maxTemp = targetZone.maxTemp;
 
-    console.log(`📊 Zone Thresholds -> Min: ${minTemp}°C | Max: ${maxTemp}°C`);
+    console.log(` Zone Thresholds -> Min: ${minTemp}°C | Max: ${maxTemp}°C`);
 
     let action = "NORMAL - NO ACTION NEEDED";
 
-    // Brain of the Rule Engine: Decide action based on temperature thresholds [cite: 146, 148]
     if (currentTemp > maxTemp) {
       action = "TURN_FAN_ON"; 
     } else if (currentTemp < minTemp) {
       action = "TURN_HEATER_ON";
     }
 
-    console.log(`⚙️ ACTION TRIGGERED: ${action}`);
+    console.log(`ACTION TRIGGERED: ${action}`);
 
     actionLogs.push({
       timestamp: new Date().toISOString(),
@@ -116,16 +111,15 @@ app.post('/api/automation/process', async (req: Request, res: Response): Promise
     res.status(200).json({ message: "Processed", action: action });
 
   } catch (error: any) {
-    console.error("❌ Error communicating with Zone Service:", error.message);
+    console.error(" Error communicating with Zone Service:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// --- 4. Logs Endpoint එක --- [cite: 150]
 app.get('/api/automation/logs', (req: Request, res: Response) => {
   res.status(200).json(actionLogs);
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Automation Service (TypeScript) is running on port ${PORT}`);
+  console.log(`Automation Service (TypeScript) is running on port ${PORT}`);
 });
