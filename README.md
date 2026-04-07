@@ -56,6 +56,8 @@ Automated-Greenhouse-Management-System-AGMS-/
 
 Start each service in a separate terminal, in this exact order.
 
+### Phase 1: Infrastructure Services
+
 ### 1) Start Eureka Server
 
 ```powershell
@@ -76,6 +78,8 @@ Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\config
 Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\API_Gateway"
 .\mvnw.cmd spring-boot:run
 ```
+
+### Phase 2: Domain Services
 
 ### 4) Start Zone Service
 
