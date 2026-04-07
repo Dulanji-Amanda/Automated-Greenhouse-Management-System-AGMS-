@@ -1,4 +1,4 @@
-# Automated Greenhouse Management System (AGMS)
+# Automated Greenhouse Management System (AGMS)🌱☘️
 
 AGMS is a cloud-native, polyglot microservices platform for greenhouse automation. It ingests live IoT telemetry, evaluates climate rules, and triggers automated control actions to maintain optimal growing conditions.
 
@@ -11,7 +11,7 @@ The platform separates responsibilities into independent services:
 - Database-per-service pattern (`PostgreSQL` for zone data, `MongoDB` for crop inventory)
 - Centralized externalized configuration through Spring Cloud Config
 
-## Architecture and Technology Stack
+## 📑 Architecture and Technology Stack
 
 ### Infrastructure Services (Spring Cloud)
 
@@ -26,7 +26,7 @@ The platform separates responsibilities into independent services:
 - **Automation and Control Service**: Express + TypeScript (`automation-service`, port `8083`)
 - **Crop Inventory Service**: Express + MongoDB (`crop-service`, port `8084`)
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
 Automated-Greenhouse-Management-System-AGMS-/
@@ -50,7 +50,7 @@ Automated-Greenhouse-Management-System-AGMS-/
 - MongoDB running locally at `mongodb://127.0.0.1:27017`
 - PostgreSQL running locally (Zone service DB details are loaded from Config Server)
 - Internet access for Config Server Git source:
-  - `https://github.com/Dulanji-Amanda/agms-config-repo.git`
+  - Config Repository: [agms-config-repo](https://github.com/Dulanji-Amanda/agms-config-repo.git)
 
 ## Startup Order (Windows PowerShell)
 
@@ -112,7 +112,7 @@ pip install flask py-eureka-client apscheduler requests
 python app.py
 ```
 
-## Service Endpoints and Health Checks
+## 📚 Service Endpoints and Health Checks
 
 After startup, confirm these URLs:
 
@@ -142,7 +142,7 @@ Each service status should be `UP`.
 
 ![Eureka Dashboard showing AGMS services as UP](docs/Eureka%20Dashboard.png)
 
-## API Testing
+## 🧪 API Testing
 
 Use the included Postman collection:
 
