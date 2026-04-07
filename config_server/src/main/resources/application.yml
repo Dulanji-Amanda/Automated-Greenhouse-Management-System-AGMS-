@@ -8,9 +8,9 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/Dulanji-Amanda/AGMS_ConfigRepo.git
+          uri: https://github.com/Dulanji-Amanda/agms-config-repo.git
           clone-on-start: true
-          default-label: main
+          default-label: master
 
 eureka:
   client:
