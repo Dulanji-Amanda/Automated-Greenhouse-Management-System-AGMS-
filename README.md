@@ -1,90 +1,152 @@
 # Automated Greenhouse Management System (AGMS)
 
-This README explains how to start the AGMS infrastructure in the correct order and verify all services are registered as `UP` in Eureka.
+AGMS is a cloud-native, polyglot microservices platform for greenhouse automation. It ingests live IoT telemetry, evaluates climate rules, and triggers automated control actions to maintain optimal growing conditions.
 
-## 1) Prerequisites
+## Overview
 
-- Java 21+
-- Maven Wrapper support (`mvnw.cmd` is already included in each Java service)
-- Node.js 18+ and npm
-- Python 3.10+
-- MongoDB running locally on `mongodb://127.0.0.1:27017` (used by `crop-service`)
-- PostgreSQL running locally (used by `zone-service`, DB details are loaded from Config Server)
-- Internet access (Config Server pulls from `https://github.com/Dulanji-Amanda/agms-config-repo.git`)
+The platform separates responsibilities into independent services:
 
-## 2) Open terminals at project root
+- Discovery and routing with Spring Cloud infrastructure
+- Domain-focused microservices implemented in Java, TypeScript/Node.js, and Python
+- Database-per-service pattern (`PostgreSQL` for zone data, `MongoDB` for crop inventory)
+- Centralized externalized configuration through Spring Cloud Config
 
-Use one terminal per service (recommended), then run the commands below in order.
+## Architecture and Technology Stack
 
-## 3) Start core infrastructure (in order)
+### Infrastructure Services (Spring Cloud)
 
-### Step 1: Eureka Server (port `8761`)
+- **Service Registry**: Netflix Eureka (`Eureka_Server`, port `8761`)
+- **Config Server**: Spring Cloud Config (`config_server`, port `8888`)
+- **API Gateway**: Spring Cloud Gateway + JWT filtering (`API_Gateway`, port `8080`)
+
+### Domain Microservices
+
+- **Zone Management Service**: Spring Boot + PostgreSQL (`zone-service`)
+- **Sensor Telemetry Service**: Flask + APScheduler (`sensor-service`, port `8082`)
+- **Automation and Control Service**: Express + TypeScript (`automation-service`, port `8083`)
+- **Crop Inventory Service**: Express + MongoDB (`crop-service`, port `8084`)
+
+## Project Structure
+
+```text
+Automated-Greenhouse-Management-System-AGMS-/
+|-- API_Gateway/            # Spring Cloud Gateway
+|-- Eureka_Server/          # Eureka discovery server
+|-- config_server/          # Centralized configuration server
+|-- zone-service/           # Zone management microservice (Java)
+|-- sensor-service/         # Sensor telemetry microservice (Python)
+|-- automation-service/     # Automation rule engine (Node.js/TypeScript)
+|-- crop-service/           # Crop inventory microservice (Node.js)
+|-- Postman Collection/     # API test collection
+|-- docs/                   # Project documentation assets
+`-- README.md
+```
+
+## Prerequisites
+
+- Java `21+`
+- Node.js `18+` and npm
+- Python `3.10+`
+- MongoDB running locally at `mongodb://127.0.0.1:27017`
+- PostgreSQL running locally (Zone service DB details are loaded from Config Server)
+- Internet access for Config Server Git source:
+  - `https://github.com/Dulanji-Amanda/agms-config-repo.git`
+
+## Startup Order (Windows PowerShell)
+
+Start each service in a separate terminal, in this exact order.
+
+### 1) Start Eureka Server
+
 ```powershell
 Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\Eureka_Server"
 .\mvnw.cmd spring-boot:run
 ```
 
-### Step 2: Config Server (port `8888`)
+### 2) Start Config Server
+
 ```powershell
 Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\config_server"
 .\mvnw.cmd spring-boot:run
 ```
 
-### Step 3: API Gateway (port `8080`)
+### 3) Start API Gateway
+
 ```powershell
 Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\API_Gateway"
 .\mvnw.cmd spring-boot:run
 ```
 
-### Step 4: Zone Service (config from Config Server)
+### 4) Start Zone Service
+
 ```powershell
 Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\zone-service"
 .\mvnw.cmd spring-boot:run
 ```
 
-## 4) Start Node.js services
+### 5) Start Automation Service
 
-### Step 5: Automation Service (port `8083`)
 ```powershell
 Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\automation-service"
 npm install
 npx ts-node index.ts
 ```
 
-### Step 6: Crop Service (port `8084`)
+### 6) Start Crop Service
+
 ```powershell
 Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\crop-service"
 npm install
 npx ts-node index.ts
 ```
 
-## 5) Start Python sensor service
+### 7) Start Sensor Service
 
-### Step 7: Sensor Service (port `8082`)
 ```powershell
 Set-Location "D:\AD2 Project\Automated-Greenhouse-Management-System-AGMS-\sensor-service"
 pip install flask py-eureka-client apscheduler requests
 python app.py
 ```
 
-## 6) Verify infrastructure is healthy
+## Service Endpoints and Health Checks
+
+After startup, confirm these URLs:
 
 - Eureka Dashboard: `http://localhost:8761`
-- Config Server health endpoint: `http://localhost:8888/actuator/health` (if actuator is enabled in config)
-- API Gateway base URL: `http://localhost:8080`
+- Config Server: `http://localhost:8888`
+- API Gateway: `http://localhost:8080`
+- Sensor Service check: `http://localhost:8082/api/sensors/latest`
+- Automation logs: `http://localhost:8083/api/automation/logs`
+- Crop list: `http://localhost:8084/api/crops`
 
-Expected registered services in Eureka (names may appear uppercase):
+`zone-service` port can be supplied by Config Server; the integration path currently expects `8081` for zone APIs.
+
+## Expected Eureka Registrations
+
+When all services are healthy, Eureka should show entries similar to:
+
 - `CONFIG-SERVER`
 - `API-GATEWAY`
-- `ZONE-SERVICE` (or the config-repo override name if configured there)
+- `ZONE-SERVICE` (or config-repo override name)
+- `SENSOR-SERVICE`
 - `AUTOMATION-SERVICE`
 - `CROP-INVENTORY-SERVICE`
-- `SENSOR-SERVICE`
 
-All should show status `UP`.
+Each service status should be `UP`.
 
-## 7) Required Eureka Dashboard evidence (`UP` services)
-
-The required dashboard screenshot is included below:
+## Required Eureka Dashboard Screenshot (UP Services)
 
 ![Eureka Dashboard showing AGMS services as UP](docs/Eureka%20Dashboard.png)
+
+## API Testing
+
+Use the included Postman collection:
+
+- `Postman Collection/AGMS.postman_collection.json`
+
+## Troubleshooting
+
+- If `zone-service` fails at startup, verify Config Server is running and PostgreSQL is reachable.
+- If Node services fail to register with Eureka, confirm Eureka is available at `http://localhost:8761/eureka`.
+- If `sensor-service` starts but no telemetry appears, validate external API reachability and credentials in `sensor-service/app.py`.
+- If routes through gateway fail, check service names in Eureka match gateway route `lb://` targets.
